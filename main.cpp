@@ -2,13 +2,14 @@
 #include <conio.h>
 #include "Field2048.h"
 #include <iostream>
+#include <string>
 using namespace std;
 
 template<unsigned N> inline void show(const array<array<unsigned, N>, N> &_arr) {
 	system("cls");
 	for (const auto &i : _arr) {
 		for (const auto &j : i) {
-			cout << j;
+			cout << (j ? to_string(static_cast<int>(pow(2, j))) : "") << '\t';
 		}
 		cout << endl;
 	}
