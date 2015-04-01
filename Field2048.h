@@ -34,7 +34,7 @@ private:
 	void counterclockwise_rotation() { rotation(false); }	// поворот поля против часовой стрелки
 	void rotation(bool _is_clockwise); // поворот поля, направление поворота зависит от параметра
 	bool check() const;	// проверка наличия ходов. если ходов нет, вернет false
-	bool exist_empty() const;	// есть ли пустое место
+	bool is_exist_empty() const;	// есть ли пустое место
 	bool is_clash_avaiable() const; // есть ли рядом одинаковые плитки
 	bool is_hor_clash_avaiable() const; // есть ли рядом по горизонтали одинаковые плитки
 	bool is_ver_clash_avaiable() const; // есть ли рядом по вертикали одинаковые плитки
@@ -68,12 +68,7 @@ template<unsigned N> inline void Field2048<N>::add_tile(unsigned _rank = 1) {
 }
 
 template<unsigned N> inline bool Field2048<N>::check() const {
-	// если хоть 1 ячейка пустая, то ходы есть
-	if (exist_empty()) return true;
-	// если рядом есть одинаковые плитки, то ходы есть
-	if (is_clash_avaiable()) return true;
-	// если дошли до сюда, то ходов нет
-	return false;
+	return is_exist_empty() || is_clash_avaiable();
 }
 
 template<unsigned N> bool Field2048<N>::move_hor(bool _to_right) {
@@ -81,10 +76,10 @@ template<unsigned N> bool Field2048<N>::move_hor(bool _to_right) {
 	if (is_hor_move_avaiable(_to_right)) {
 		for (unsigned i = 0; i != N; ++i) {
 			// сдвиг
-			stable_partition(tiles[i].begin(), tiles[i].end(), [_to_right](unsigned _u){ return (_u == 0) == _to_right; });
+			stable_partition(tiles[i].begin(), tiles[i].end(),
+				[_to_right](unsigned _u){ return (_u == 0) == _to_right; });
 			// проверка на столкновение одинаковых плиток
 			bool is_clashed = false;	// было ли хоть 1 столкновение в текущем обрабатываемом ряду
-			//for (unsigned j = (_to_right ? N - 2 : 0); j != (_to_right ? -1 : N - 1); (_to_right ? --j : ++j)) {
 			for (unsigned j = 0; j != N - 1; ++j) {
 				if (tiles[i][j] != 0 && tiles[i][j] == tiles[i][j + 1]) {
 					++tiles[i][j];
@@ -94,14 +89,12 @@ template<unsigned N> bool Field2048<N>::move_hor(bool _to_right) {
 			}
 			// если столкновения были, то надо сдвинуть еще раз
 			if (is_clashed) {
-				stable_partition(tiles[i].begin(), tiles[i].end(), [_to_right](unsigned _u){ return (_u == 0) == _to_right; });
+				stable_partition(tiles[i].begin(), tiles[i].end(),
+					[_to_right](unsigned _u){ return (_u == 0) == _to_right; });
 			}
 		}
-		// если есть пустое место
-		if (exist_empty()) {
-			// добавление новой плитки
-			add_tile();
-		}
+		// добавление новой плитки
+		add_tile();
 		// если остались ходы, то вернем true;
 		return check();
 	}
@@ -116,7 +109,8 @@ template<unsigned N> inline bool Field2048<N>::move_ver(bool _to_up) {
 	clockwise_rotation();	// повернем поле по часовой стрелке
 	check_result = move_hor(_to_up);	// выполним сдвиг по горизонтали
 	counterclockwise_rotation();	// вернем нормальную ориентацию, повернув против часовой стрелки
-	return check_result;	// вернем результат проверки на наличие ходов, полученный при сдвиге по горизонтали
+	// вернем результат проверки на наличие ходов, полученный при сдвиге по горизонтали
+	return check_result;
 }
 
 template<unsigned N> inline void Field2048<N>::rotation(bool _is_clockwise) {
@@ -131,7 +125,7 @@ template<unsigned N> inline void Field2048<N>::rotation(bool _is_clockwise) {
 	tiles = temp;
 }
 
-template<unsigned N> inline bool Field2048<N>::exist_empty() const {
+template<unsigned N> inline bool Field2048<N>::is_exist_empty() const {
 	// если хоть 1 ячейка пустая, вернет true
 	for (const auto &i : tiles) {
 		for (const auto &j : i) {
@@ -165,11 +159,14 @@ template<unsigned N> inline bool Field2048<N>::is_ver_clash_avaiable() const {
 }
 
 template<unsigned N> inline bool Field2048<N>::is_hor_move_avaiable(bool _to_right) const {
+	// если возможен сдвиг без столкновений, вернет true
 	for (unsigned i = 0; i != N; ++i) {
-		if (!is_partitioned(tiles[i].begin(), tiles[i].end(), [_to_right](unsigned _u){ return (_u == 0) == _to_right; })) {
+		if (!is_partitioned(tiles[i].begin(), tiles[i].end(),
+			[_to_right](unsigned _u){ return (_u == 0) == _to_right; })) {
 			return true;
 		}
 	}
+	// если возможны столкновения одинаковых плиток, тоже вернет true
 	if (is_hor_clash_avaiable()) return true;
 	return false;
 }
