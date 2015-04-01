@@ -93,8 +93,8 @@ template<unsigned N> bool Field2048<N>::move_hor(bool _to_right) {
 					[_to_right](unsigned _u){ return (_u == 0) == _to_right; });
 			}
 		}
-		// добавление новой плитки
-		add_tile();
+		// добавление новой плитки (90 % что появится "2" и 10 % что "4")
+		add_tile(rand() % 10 ? 1 : 2);
 		// если остались ходы, то вернем true;
 		return check();
 	}
