@@ -24,7 +24,7 @@ int main() {
 		if (!good) {
 			cout << endl;
 			cout << "it's all over." << endl << endl;
-			cout << "program by Alex Zhdanov. 2015." << endl;
+			cout << "program by Alex Zhdanov. 2015." << endl << endl;
 			break;
 		}
 		act = _getch();
