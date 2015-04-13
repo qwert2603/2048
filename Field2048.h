@@ -49,13 +49,14 @@ private:
 	// используется для поиска свободного места для добавления новой плитки
 	uniform_int_distribution<unsigned> unif_distr;
 	// распределение Бернулли для этого объекта поля
-	// используется при добавлении новых плиток. По умолчанию 90 %, что появится "2" и 10 %, что "4"
+	// используется при добавлении новых плиток. По умолчанию 90%, что появится "2" и 10%, что "4"
 	bernoulli_distribution bern_distr;
 };
 
 // конструктор
 // задание начального значения процесора случайных чисел и диапазонов распределений
-template<unsigned N> inline Field2048<N>::Field2048() : rand_engine(static_cast<unsigned>(time(0))), unif_distr(0, N - 1), bern_distr(0.9) {
+template<unsigned N> inline Field2048<N>::Field2048() 
+	: rand_engine(static_cast<unsigned>(time(0))), unif_distr(0, N - 1), bern_distr(0.9) {
 	// сначала плиток нет
 	for (auto &i : tiles) {
 		for (auto &j : i) {
