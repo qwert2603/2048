@@ -4,10 +4,13 @@
 #include <array>
 using std::array;
 
+#include <random>
+using std::default_random_engine;
+using std::uniform_int_distribution;
+using std::bernoulli_distribution;
+
 #include <ctime>
 using std::time;
-using std::rand;
-using std::srand;
 
 #include <utility>
 using std::pair;
@@ -41,16 +44,24 @@ private:
 	// можно ли сдвинуть плитки по горизонтали, направление сдвига зависит от параметра
 	bool is_hor_move_avaiable(bool _to_right) const;
 	array<array<unsigned, N>, N> tiles;	// плитки
+	default_random_engine rand_engine;	// процесор случайных чисел для этого объекта поля
+	// распределение случайных чисел для этого объекта поля
+	// используется для поиска свободного места для добавления новой плитки
+	uniform_int_distribution<unsigned> unif_distr;
+	// распределение Бернулли для этого объекта поля
+	// используется при добавлении новых плиток. По умолчанию 90 %, что появится "2" и 10 %, что "4"
+	bernoulli_distribution bern_distr;
 };
 
-template<unsigned N> inline Field2048<N>::Field2048() {
+// конструктор
+// задание начального значения процесора случайных чисел и диапазонов распределений
+template<unsigned N> inline Field2048<N>::Field2048() : rand_engine(static_cast<unsigned>(time(0))), unif_distr(0, N - 1), bern_distr(0.9) {
 	// сначала плиток нет
 	for (auto &i : tiles) {
 		for (auto &j : i) {
 			j = 0;
 		}
 	}
-	srand(static_cast<unsigned>(time(0)));
 	// добавить начальные плитки
 	add_tile();
 	add_tile();
@@ -60,8 +71,8 @@ template<unsigned N> inline void Field2048<N>::add_tile(unsigned _rank = 1) {
 	pair<unsigned, unsigned> new_tile;
 	// пока не найдется свободное место
 	do {
-		new_tile.first = rand() % N;
-		new_tile.second = rand() % N;
+		new_tile.first = unif_distr(rand_engine);
+		new_tile.second = unif_distr(rand_engine);
 	} while (tiles[new_tile.first][new_tile.second] != 0);
 	// добавление плитки
 	tiles[new_tile.first][new_tile.second] = _rank;
@@ -93,8 +104,8 @@ template<unsigned N> bool Field2048<N>::move_hor(bool _to_right) {
 					[_to_right](unsigned _u){ return (_u == 0) == _to_right; });
 			}
 		}
-		// добавление новой плитки (90 % что появится "2" и 10 % что "4")
-		add_tile(rand() % 10 ? 1 : 2);
+		// добавление новой плитки
+		add_tile(bern_distr(rand_engine) ? 1 : 2);
 		// если остались ходы, то вернем true;
 		return check();
 	}
