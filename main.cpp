@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Field2048.h"
 #include <SFML\Graphics.hpp>
 
